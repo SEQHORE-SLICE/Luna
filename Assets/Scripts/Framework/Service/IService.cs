@@ -2,22 +2,22 @@ using Cysharp.Threading.Tasks;
 namespace Framework
 {
     /// <summary>
-    /// System service interface
+    ///     System service interface
     /// </summary>
-    public interface IService
+    internal interface IService
     {
         /// <summary>
-        /// Initialize the service,allocate system resources
+        ///     Initialize the service,allocate system resources
         /// </summary>
         public UniTaskVoid InitializeAsync();
 
         /// <summary>
-        /// Service calls each other
+        ///     Service calls each other
         /// </summary>
         public void PostInitialize();
 
         /// <summary>
-        /// Stop the service, release all the held resources
+        ///     Stop the service, release all the held resources
         /// </summary>
         public void Destroy();
     }

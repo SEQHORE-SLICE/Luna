@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace Framework
 {
-    public static class System
+    public static class Boot
     {
         /// <summary>
         ///     The name of the system instance
@@ -89,7 +89,7 @@ namespace Framework
         /// <summary>
         ///     Release all resources
         /// </summary>
-        public static void Destruction()
+        internal static void Destruction()
         {
             _initializeTcs = null;
             SystemServices.ForEach(service => service.Destroy());
