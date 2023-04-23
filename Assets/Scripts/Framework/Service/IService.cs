@@ -9,7 +9,7 @@ namespace Framework
         /// <summary>
         ///     Initialize the service,allocate system resources
         /// </summary>
-        public UniTaskVoid InitializeAsync();
+        public UniTask InitializeAsync();
 
         /// <summary>
         ///     Service calls each other

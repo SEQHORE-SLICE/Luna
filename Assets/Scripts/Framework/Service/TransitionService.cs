@@ -7,7 +7,7 @@ namespace Framework
 {
     public class TransitionService : Singleton<TransitionService>, IService
     {
-        public async UniTaskVoid InitializeAsync()
+        public async UniTask  InitializeAsync()
         {
             await UniTask.CompletedTask;
         }

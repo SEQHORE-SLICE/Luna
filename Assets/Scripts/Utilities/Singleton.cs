@@ -6,7 +6,6 @@
     /// <typeparam name="T">The class itself</typeparam>
     public class Singleton<T> where T : Singleton<T>, new()
     {
-        private static T _instance;
-        public static T instance => _instance ??= new T();
+        public static T instance { get; } = new T();
     }
 }
