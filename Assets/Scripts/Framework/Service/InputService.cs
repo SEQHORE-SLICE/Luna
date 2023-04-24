@@ -1,5 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
-using UnityEngine;
+using JetBrains.Annotations;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 using Utilities;
@@ -8,18 +8,25 @@ namespace Framework
     public class InputService : Singleton<InputService>, IService
     {
 
-        internal InputActionAsset _inputActionAsset;
-       
+        private InputActionAsset _inputActionAsset;
+
         public async UniTask InitializeAsync()
         {
-            var handle = Addressables.LoadAssetAsync<InputActionAsset>("default").ToUniTask();
-            instance._inputActionAsset = await handle;
+            var task = Addressables.LoadAssetAsync<InputActionAsset>("default").ToUniTask();
+            _inputActionAsset = await task;
         }
 
         public void PostInitialize() { }
 
         public void Destroy() { }
 
+
+        [CanBeNull]
+        public InputAction GetInputAction(string mapName, string actionName)
+        {
+            var map = _inputActionAsset.FindActionMap(mapName);
+            return map?.FindAction(actionName);
+        }
 
     }
 }
