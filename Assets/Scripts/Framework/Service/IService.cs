@@ -12,11 +12,6 @@ namespace Framework
         public UniTask InitializeAsync();
 
         /// <summary>
-        ///     Service calls each other
-        /// </summary>
-        public void PostInitialize();
-
-        /// <summary>
         ///     Stop the service, release all the held resources
         /// </summary>
         public void Destroy();

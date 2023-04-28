@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -23,11 +24,10 @@ namespace Framework
         public static bool asyncInitializing => _initializeTcs != null && !_initializeTcs.Task.GetAwaiter().IsCompleted;
 
         private static readonly List<IService> SystemServices = new List<IService>();
-        private static readonly List<Func<UniTask>> PostInitializationTasks = new List<Func<UniTask>>();
-        public static void AddPostInitializationTask(Func<UniTask> task)
-        {
-            PostInitializationTasks.Insert(0, task);
-        }
+        private static readonly List<Task> PostInitializationTasks = new List<Task>();
+        
+        public static void AddPostInitializationTask(Task task) => PostInitializationTasks.Add(task);
+        public static void AddPostInitializationTask(IEnumerable<Task> tasks) => PostInitializationTasks.AddRange(tasks);
 
         /// <summary>
         ///     Allocate all resources
@@ -68,7 +68,7 @@ namespace Framework
             var serviceAssembly = typeof(IService).Assembly;
             var assemblyTypes = serviceAssembly.GetTypes();
             var serviceTypes = assemblyTypes.Where(type => type.GetInterfaces().Contains(typeof(IService))).ToArray();
-
+            
             foreach (var service in serviceTypes)
             {
                 if (serviceAssembly.CreateInstance(service.ToString()) is not IService instance)
@@ -80,31 +80,24 @@ namespace Framework
                 SystemServices.Add(instance);
             }
 
+
             /*
             SystemServices.Clear();
             SystemServices.AddRange(services);
             */
-            
-            //Wait for service initialization to complete
 
+            //Wait for service initialization to complete
             foreach (var service in SystemServices)
             {
                 await service.InitializeAsync();
                 if (!asyncInitializing) return;
             }
 
-            foreach (var service in SystemServices)
-            {
-                service.PostInitialize();
-                if (!asyncInitializing) return;
-            }
+            await Task.WhenAll(PostInitializationTasks);
             #endregion
 
-            foreach (var task in PostInitializationTasks)
-            {
-                await task.Invoke();
-            }
-            
+
+
             //Close block-semaphore
             _initializeTcs.TrySetResult();
         }

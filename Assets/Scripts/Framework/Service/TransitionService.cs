@@ -7,20 +7,9 @@ namespace Framework
 {
     public class TransitionService : Singleton<TransitionService>, IService
     {
-        public async UniTask  InitializeAsync()
-        {
-            await UniTask.CompletedTask;
-        }
+        public async UniTask InitializeAsync() => await UniTask.CompletedTask;
 
-        public void PostInitialize()
-        {
-
-        }
-
-        public void Destroy()
-        {
-
-        }
+        public void Destroy() { }
 
         /// <summary>
         ///     Unload tag scene and load next scene asynchronously
@@ -28,8 +17,8 @@ namespace Framework
         /// <remarks>Use Forget method to return void</remarks>
         /// <param name="loadName">scene name to load</param>
         /// <param name="unloadName">scene name to unload,default is the active scene</param>
-        /// <param name="action">method to do after switch</param>
-        public async UniTask TransitionScene(string loadName, string unloadName = null, UnityAction action = null)
+        /// <param name="postAction">method to do after switch</param>
+        public async UniTask TransitionScene(string loadName, string unloadName = null, UnityAction postAction = null)
         {
             //unload before load to avoid some bugs 
             if (!SceneManager.GetSceneByName(unloadName).IsValid())
@@ -50,7 +39,7 @@ namespace Framework
             //select the newest scene and set it active
             var targetScene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
             SceneManager.SetActiveScene(targetScene);
-            action?.Invoke();
+            postAction?.Invoke();
         }
     }
 }

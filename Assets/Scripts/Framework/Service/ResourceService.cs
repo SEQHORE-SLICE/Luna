@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Utilities;
+using Task = System.Threading.Tasks.Task;
 namespace Framework
 {
     public class ResourceService : Singleton<ResourceService>, IService
@@ -8,31 +9,26 @@ namespace Framework
 
         public async UniTask InitializeAsync()
         {
-            Boot.AddPostInitializationTask(Test);
-            
+            var task = Task.Run(Test);
+            Boot.AddPostInitializationTask(task);
+
             await UniTask.CompletedTask;
         }
 
-        public void PostInitialize()
-        { }
-        public void Destroy()
-        {
-            throw new System.NotImplementedException();
-        }
+        public void Destroy() { }
 
-        private static async UniTask Test()
+        private static void Test()
         {
-          
-            if (InputService.instance._inputActionAsset == null)
+
+            if (InputService.instance.InputActionAsset == null)
             {
                 Debug.Log("?");
             }
             else
             {
-                var path = InputService.instance._inputActionAsset.name;
+                string path = InputService.instance.InputActionAsset.name;
                 Debug.Log(path);
             }
-            await UniTask.CompletedTask;
         }
     }
 }

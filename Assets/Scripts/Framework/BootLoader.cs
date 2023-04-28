@@ -26,22 +26,20 @@ namespace Framework
         [InitializeOnLoadMethod]
         public static void LoaderCheck()
         {
-            var sceneCount = SceneManager.sceneCountInBuildSettings;
-            var scenePath = new string[sceneCount];
-            for (var i = 0; i < sceneCount; i++)
+            int sceneCount = SceneManager.sceneCountInBuildSettings;
+            string[] scenePath = new string[sceneCount];
+            for (int i = 0; i < sceneCount; i++)
             {
                 scenePath[i] =
                     Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
             }
 
-            var sceneName = scenePath.Select(path => path[(path.LastIndexOf('/') + 1)..]).ToArray();
+            string[] sceneName = scenePath.Select(path => path[(path.LastIndexOf('/') + 1)..]).ToArray();
 
             if (!sceneName.Contains("Persistent"))
             {
                 throw new Exception("Persistent scene is lose!");
-
             }
-
         }
         #endif
 
