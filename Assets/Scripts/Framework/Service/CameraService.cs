@@ -3,7 +3,7 @@ using UnityEngine;
 using Utilities;
 namespace Framework
 {
-    public class CameraService : Singleton<CameraService>, IService
+    public class CameraService :  IService
     {
 
         #region variable

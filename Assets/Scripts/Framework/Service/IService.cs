@@ -4,7 +4,7 @@ namespace Framework
     /// <summary>
     ///     System service interface
     /// </summary>
-    internal interface IService
+    public interface IService
     {
         /// <summary>
         ///     Initialize the service,allocate system resources

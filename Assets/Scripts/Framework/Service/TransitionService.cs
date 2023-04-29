@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 using Utilities;
 namespace Framework
 {
-    public class TransitionService : Singleton<TransitionService>, IService
+    public class TransitionService : IService
     {
         public async UniTask InitializeAsync() => await UniTask.CompletedTask;
 
