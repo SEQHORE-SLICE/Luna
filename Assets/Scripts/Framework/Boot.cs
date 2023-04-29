@@ -1,38 +1,41 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
 namespace Framework
 {
     public static class Boot
     {
-        /// <summary>
-        ///     The name of the system instance
-        /// </summary>
         public const string SystemInstanceName = "SYSTEM";
         public const string PersistenceSceneName = "Persistent";
 
-        public static GameObject systemInstanceObject { get; private set; }
+        public static GameObject behaviorProxyGameObject { get; private set; }
+
 
         private static UniTaskCompletionSource _initializeTcs;
-        public static bool asyncInitialized => _initializeTcs != null && _initializeTcs.Task.GetAwaiter().IsCompleted;
-        public static bool asyncInitializing => _initializeTcs != null && !_initializeTcs.Task.GetAwaiter().IsCompleted;
+        private static bool asyncInitialized => _initializeTcs != null && _initializeTcs.Task.GetAwaiter().IsCompleted;
+        private static bool asyncInitializing => _initializeTcs != null && !_initializeTcs.Task.GetAwaiter().IsCompleted;
 
-        private static readonly List<IService> SystemServices = new List<IService>();
-        private static readonly List<Task> PostInitializationTasks = new List<Task>();
-        
-        public static void AddPostInitializationTask(Task task) => PostInitializationTasks.Add(task);
-        public static void AddPostInitializationTask(IEnumerable<Task> tasks) => PostInitializationTasks.AddRange(tasks);
+        internal static readonly List<IService> SystemServices = new List<IService>();
+        private static readonly List<UniTask> PostInitializationTasks = new List<UniTask>();
+
+        public static void AddPostInitializationTask(UniTask task)
+        {
+            PostInitializationTasks.Add(task);
+        }
+        public static void AddPostInitializationTask(IEnumerable<UniTask> tasks)
+        {
+            PostInitializationTasks.AddRange(tasks);
+        }
+
+
 
         /// <summary>
         ///     Allocate all resources
         /// </summary>
-        internal static async UniTask InitializeAsync(List<IService> services)
+        internal static async UniTask InitializeAsync(GameObject proxy)
         {
             //start when the current task is not running
             //block when the current task is running
@@ -51,7 +54,9 @@ namespace Framework
             _initializeTcs = new UniTaskCompletionSource();
 
             #region ====Initialize Scene====
-            systemInstanceObject = new GameObject(SystemInstanceName);
+            behaviorProxyGameObject = proxy;
+            proxy.AddComponent<BehaviorProxy>();
+
             var scene = SceneManager.GetSceneByName(PersistenceSceneName);
             if (!scene.IsValid())
             {
@@ -59,7 +64,7 @@ namespace Framework
                 scene = SceneManager.GetSceneByName(PersistenceSceneName);
             }
 
-            SceneManager.MoveGameObjectToScene(systemInstanceObject, scene);
+            SceneManager.MoveGameObjectToScene(behaviorProxyGameObject, scene);
             #endregion
 
             #region ====Initialize Service====
@@ -68,23 +73,17 @@ namespace Framework
             var serviceAssembly = typeof(IService).Assembly;
             var assemblyTypes = serviceAssembly.GetTypes();
             var serviceTypes = assemblyTypes.Where(type => type.GetInterfaces().Contains(typeof(IService))).ToArray();
-            
+
             foreach (var service in serviceTypes)
             {
                 if (serviceAssembly.CreateInstance(service.ToString()) is not IService instance)
                     throw new WarningException($"There has some error in {service} class");
                 #if UNITY_EDITOR
                 //Easy to manage
-                new GameObject($"[{service.Name}]").transform.SetParent(systemInstanceObject.transform);
+                new GameObject($"[{service.Name}]").transform.SetParent(behaviorProxyGameObject.transform);
                 #endif
                 SystemServices.Add(instance);
             }
-
-
-            /*
-            SystemServices.Clear();
-            SystemServices.AddRange(services);
-            */
 
             //Wait for service initialization to complete
             foreach (var service in SystemServices)
@@ -93,11 +92,10 @@ namespace Framework
                 if (!asyncInitializing) return;
             }
 
-            await Task.WhenAll(PostInitializationTasks);
+
+            await UniTask.WhenAll(PostInitializationTasks);
             #endregion
-
-
-
+            
             //Close block-semaphore
             _initializeTcs.TrySetResult();
         }
@@ -110,7 +108,7 @@ namespace Framework
             _initializeTcs = null;
             SystemServices.ForEach(service => service.Destroy());
             SystemServices.Clear();
-            Object.Destroy(systemInstanceObject);
+            Object.Destroy(behaviorProxyGameObject);
         }
     }
 }

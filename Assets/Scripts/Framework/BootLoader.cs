@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -9,18 +8,11 @@ namespace Framework
 {
     public class BootLoader : MonoBehaviour
     {
+
         public async void Awake()
         {
-            await Boot.InitializeAsync(CollectionService());
+            await Boot.InitializeAsync(gameObject);
         }
-        
-        private static List<IService> CollectionService() => new List<IService>
-        {
-            TransitionService.instance,
-            ResourceService.instance,
-            InputService.instance
-        };
-
 
         #if UNITY_EDITOR
         [InitializeOnLoadMethod]
