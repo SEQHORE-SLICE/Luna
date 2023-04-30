@@ -38,6 +38,15 @@ MonoBehaviour:
     m_Address: Assets/ArtAssets
     m_ReadOnly: 0
     m_SerializedLabels: []
+  - m_GUID: 15bc6ba34cebab50f8dd19a44dc31975
+    m_Address: Assets/Prefabs
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: a8054aaba34afee499ce1ad1f70272bb
+    m_Address: Assets/Prefabs/Cube.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Character
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 9e4b336d6a69fec40bb227bebe87c114, type: 2}
   m_SchemaSet:

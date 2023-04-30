@@ -4,14 +4,17 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 namespace Framework
 {
     public class BootLoader : MonoBehaviour
     {
 
+        public Button exit;
         public async void Awake()
         {
             await Boot.InitializeAsync(gameObject);
+            exit.onClick.AddListener(Exit);
         }
 
         #if UNITY_EDITOR
@@ -35,5 +38,14 @@ namespace Framework
         }
         #endif
 
+        private void Exit()
+        {
+            #if UNITY_EDITOR
+            Boot.Destruction();
+            UnityEditor.EditorApplication.isPlaying = false;
+            #else
+            Application.Quit();
+            #endif
+        }
     }
 }

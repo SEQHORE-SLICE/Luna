@@ -11,7 +11,7 @@ namespace Framework
 
         public void Destroy() { }
 
-        public async UniTask<T> LoadAssesAsync<T>(string key)
+        public static async UniTask<T> LoadAssetAsync<T>(string key)
         {
             var handle = Addressables.LoadAssetAsync<T>(key);
             var result = await handle;

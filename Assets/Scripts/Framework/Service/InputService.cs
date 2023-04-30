@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
 namespace Framework
 {
-    public class InputService : IService
+    public sealed class InputService : IService
     {
         private InputActionAsset _inputActionAsset;
         private PlayerInput _playerInput;
@@ -35,7 +35,12 @@ namespace Framework
             _playerInput.onActionTriggered += OnAction;
         }
 
-        public void Destroy() { }
+        public void Destroy()
+        {
+            _playerInput.onActionTriggered -= OnAction;
+            _inputActionAsset = null;
+            _playerInput = null;
+        }
 
         private void OnAction(InputAction.CallbackContext callback)
         {
