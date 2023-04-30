@@ -22,7 +22,7 @@ namespace Framework
             {
                 transform =
                 {
-                    parent = Boot.behaviorProxyGameObject.transform
+                    parent = Boot.rootObject.transform
                 }
             };
 
