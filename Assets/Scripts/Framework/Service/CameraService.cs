@@ -5,7 +5,6 @@ namespace Framework
 {
     public class CameraService : IService
     {
-
         #region variable
         public Camera mainCamera { get; private set; }
         #endregion

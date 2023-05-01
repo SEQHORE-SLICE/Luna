@@ -88,6 +88,11 @@
                     "devicePath": "<Mouse>",
                     "isOptional": false,
                     "isOR": false
+                },
+                {
+                    "devicePath": "<Pointer>",
+                    "isOptional": false,
+                    "isOR": false
                 }
             ]
         }
