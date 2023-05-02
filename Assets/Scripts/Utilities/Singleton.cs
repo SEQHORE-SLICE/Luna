@@ -1,4 +1,5 @@
-﻿namespace Utilities
+﻿using System;
+namespace Utilities
 {
     /// <summary>
     /// Ordinary singleton class
@@ -6,6 +7,11 @@
     /// <typeparam name="T">The class itself</typeparam>
     public class Singleton<T> where T : Singleton<T>, new()
     {
-        public static T instance { get; } = new T();
+        private static T _instance = null;
+        public static T instance => _instance ??= new T();
+        protected Singleton()
+        {
+            if (_instance != null) throw new Exception();
+        }
     }
 }

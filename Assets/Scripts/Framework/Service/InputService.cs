@@ -1,32 +1,53 @@
-﻿using Cysharp.Threading.Tasks;
-using JetBrains.Annotations;
+﻿using System;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
-using Utilities;
 namespace Framework
 {
-    public class InputService : Singleton<InputService>, IService
+    public sealed class InputService : IService
     {
-
         private InputActionAsset _inputActionAsset;
+        private PlayerInput _playerInput;
+        public Action<Vector2> Move;
 
         public async UniTask InitializeAsync()
         {
-            var task = Addressables.LoadAssetAsync<InputActionAsset>("default").ToUniTask();
-            _inputActionAsset = await task;
+            var handle = Addressables.LoadAssetAsync<InputActionAsset>("default");
+            _inputActionAsset = await handle;
+            if (_inputActionAsset == null) throw new NullReferenceException();
+
+
+            var gameObject = new GameObject($"[{nameof(InputService)}]")
+            {
+                transform =
+                {
+                    parent = Boot.rootObject.transform
+                }
+            };
+
+            _playerInput = gameObject.AddComponent<PlayerInput>();
+
+            _inputActionAsset.Enable();
+            _playerInput.actions = _inputActionAsset;
+            _playerInput.defaultActionMap = "Player";
+            _playerInput.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
+            _playerInput.onActionTriggered += OnAction;
         }
 
-        public void PostInitialize() { }
-
-        public void Destroy() { }
-
-
-        [CanBeNull]
-        public InputAction GetInputAction(string mapName, string actionName)
+        public void Destroy()
         {
-            var map = _inputActionAsset.FindActionMap(mapName);
-            return map?.FindAction(actionName);
+            _playerInput.onActionTriggered -= OnAction;
+            _inputActionAsset = null;
+            _playerInput = null;
         }
 
+        private void OnAction(InputAction.CallbackContext callback)
+        {
+            if (callback.action.name == "Move")
+            {
+                Move?.Invoke(callback.ReadValue<Vector2>());
+            }
+        }
     }
 }
