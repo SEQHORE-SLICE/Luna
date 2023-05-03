@@ -63,8 +63,9 @@ namespace Utilities.Slice
             // cannot continue without a proper filter
             if (filter == null)
             {
+                #if UNITY_EDITOR
                 Debug.LogWarning("EzySlice::Slice -> Provided GameObject must have a MeshFilter Component.");
-
+                #endif
                 return null;
             }
 
@@ -75,7 +76,7 @@ namespace Utilities.Slice
             {
                 #if UNITY_EDITOR
                 Debug.LogWarning("EzySlice::Slice -> Provided GameObject must have a MeshRenderer Component.");
-                 #endif
+                #endif
                 return null;
             }
 

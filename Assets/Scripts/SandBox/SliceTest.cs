@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using Framework;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Utilities.Slice;
-
 namespace SandBox
 {
     public class SliceTest : MonoBehaviour
@@ -11,121 +9,68 @@ namespace SandBox
         public Material cross;
         public LayerMask layer;
         public GameObject plane;
-        public BoxCollider boxCollider;
-
+        public Quaternion rotation;
+        
+        
+        private Vector3 boxColliderCenter => new Vector3(plane.transform.lossyScale.z * 10, plane.transform.lossyScale.x * 10, 10);
         private Vector3 w => plane.transform.position + Vector3.up * (plane.transform.lossyScale.x * 5);
         private Vector3 a => plane.transform.position + Vector3.down * (plane.transform.lossyScale.x * 5);
         private Vector3 s => plane.transform.position + Vector3.left * (plane.transform.lossyScale.z * 5);
         private Vector3 d => plane.transform.position + Vector3.right * (plane.transform.lossyScale.z * 5);
+        private List<Collider> _colliders = new List<Collider>();
+        private readonly Collider[] _collider2 = { };
 
-        public Collider[] result = { };
-        public List<Collider> result2 = new List<Collider>();
-        public Collider[] resultW = { };
-        public Collider[] resultA = { };
-        public Collider[] resultS = { };
-        public Collider[] resultD = { };
-
-
-
-        public GameObject[] planes = { };
-
-
-
+        
         private void Start()
         {
             layer = LayerMask.GetMask("Sliceable");
         }
-
-        // Update is called once per frame
         private void Update()
         {
-            /*           plane.transform.position =
-                           Explorer.TryGetService<CameraService>().mainCamera.ScreenToWorldPoint(
-                               new Vector3(Mouse.current.position.ReadValue().x, Mouse.current.position.ReadValue().y, 10.95f));
-           
-           
-           
-           
-                       Physics.OverlapBoxNonAlloc(w, new Vector3(d.x - a.x, .1f, 10), resultW, Quaternion.identity, layer);
-                       Physics.OverlapBoxNonAlloc(a, new Vector3(d.x - a.x, .1f, 10), resultA, Quaternion.identity, layer);
-                       Physics.OverlapBoxNonAlloc(s, new Vector3(.1f, w.y - s.y, 10), resultS, Quaternion.identity, layer);
-                       Physics.OverlapBoxNonAlloc(d, new Vector3(.1f, w.y - s.y, 10), resultD, Quaternion.identity, layer);
-           
-           
-           
-           
-     
 
 
-
-            //检测鼠标横向移动
-            float mx = Input.GetAxis("Mouse X");
-            transform.Rotate(0, 0, mx * 2);      */
             if (!Input.GetMouseButtonDown(0)) return;
-
-
-            foreach (var pla in planes)
-            {
-                Cut(result, pla.transform);
-            }
-
-
-            //盒子射线检测
-            // var colliders = Physics.OverlapBox(boxCollider.transform.position, boxCollider.size, transform.rotation, layer);
-
-
+            Physics.OverlapBoxNonAlloc(transform.position, boxColliderCenter, _collider2, rotation, mask: layer);
+            _colliders = _collider2.ToList();
+            Cut(w, Vector3.down);
+            Cut(a, Vector3.up);
+            Cut(s, Vector3.right);
+            Cut(d, Vector3.left);
         }
 
-
-
-        private void Cut(Collider[] colliders, Transform trans)
+        private void Cut(Vector3 position, Vector3 direction)
         {
-
-            result2.Clear();
-            //将每一个检测到的进行切割
-            foreach (var c in colliders)
+            int count = _colliders.Count;
+            for (int index = 0; index < count; index++)
             {
-                //添加切割面的材质
-                //切割并返回表皮
-                var hull = c.gameObject.Slice(trans.position, trans.up);
-                if (hull != null)
-                {
-                    var lower = hull.CreateLowerHull(c.gameObject, cross);
-                    var upper = hull.CreateUpperHull(c.gameObject, cross);
-                    GameObject[] objs = { lower, upper };
-                    foreach (var o in objs)
-                    {
-                        o.AddComponent<Rigidbody>().useGravity = false;
-                        var meshCollider = o.AddComponent<MeshCollider>();
-                        meshCollider.convex = true;
-                        result2.Add(meshCollider);
-                        o.layer = LayerMask.NameToLayer("Sliceable");
-                    }
-                    Destroy(c.gameObject);
-                }
-                else
-                {
-                    result2.Add(c);
-                }
+                var c = _colliders[index];
+                var hull = c.gameObject.Slice(position, direction);
+                if (hull == null) continue;
+                var upper = hull.CreateUpperHull(c.gameObject, cross);
+                upper.AddComponent<Rigidbody>().useGravity = false;
+                var meshCollider = upper.AddComponent<MeshCollider>();
+                meshCollider.convex = true;
+                _colliders.Add(meshCollider);
+                upper.layer = LayerMask.NameToLayer("Sliceable");
+                _colliders.Remove(c);
+                c.gameObject.SetActive(false);
             }
-
-
-            result = result2.ToArray();
         }
-
-
-
         private void OnDrawGizmos()
-        { /*
+        {
             //w
             Gizmos.DrawSphere(w, .1f);
-            Gizmos.DrawCube(w, new Vector3(d.x - a.x, .1f, 10));
+            Gizmos.DrawLine(w, w + Vector3.down);
             //s
             Gizmos.DrawSphere(a, .1f);
+            Gizmos.DrawLine(a, a + Vector3.up);
             //a
             Gizmos.DrawSphere(s, .1f);
+            Gizmos.DrawLine(s, s + Vector3.right);
             //d
-            Gizmos.DrawSphere(d, .1f);*/
+            Gizmos.DrawSphere(d, .1f);
+            Gizmos.DrawLine(d, d + Vector3.left);
         }
+        private void OnDrawGizmosSelected() { Gizmos.DrawCube(transform.position, boxColliderCenter); }
     }
 }
